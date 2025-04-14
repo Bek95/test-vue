@@ -21,6 +21,7 @@ const init = () => {
   hidden.value = true
 }
 
+// définir des propriétés au composant
 const props = defineProps({
   msg: {
     type: String,

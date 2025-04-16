@@ -5,6 +5,8 @@ import WatchComponent from "@/components/WatchComponent.vue";
 import ButtonComponent from "@/components/ButtonComponent.vue";
 
 const msg = ref('TUTO VUE')
+const childMsg = ref('')
+
 
 </script>
 
@@ -30,7 +32,11 @@ const msg = ref('TUTO VUE')
     <span>**************************************************</span>
     <br>
     <br>
-    <ButtonComponent></ButtonComponent>
+    <h2> {{ msg }}</h2>
+    <h4>{{ childMsg }}</h4>
+    <ButtonComponent @compMsg="(msg) => childMsg = msg" msg="test msg"></ButtonComponent>
+    <ButtonComponent @compMsg="(msg) => childMsg = msg" msg="autre test" color="red"></ButtonComponent>
+    <ButtonComponent @compMsg="(msg) => childMsg = msg" msg="encore un autre test" color="blue"></ButtonComponent>
     <br>
     <br>
     <br>

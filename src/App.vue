@@ -7,6 +7,8 @@ import ButtonComponent from "@/components/ButtonComponent.vue";
 const msg = ref('TUTO VUE')
 const childMsg = ref('')
 
+const slot = ref('toto')
+
 
 </script>
 
@@ -34,7 +36,7 @@ const childMsg = ref('')
     <br>
     <h2> {{ msg }}</h2>
     <h4>{{ childMsg }}</h4>
-    <ButtonComponent @compMsg="(msg) => childMsg = msg" msg="test msg"></ButtonComponent>
+    <ButtonComponent @compMsg="(msg) => childMsg = msg" msg="test msg"> Example : {{ slot.toUpperCase() }}</ButtonComponent>
     <ButtonComponent @compMsg="(msg) => childMsg = msg" msg="autre test" color="red"></ButtonComponent>
     <ButtonComponent @compMsg="(msg) => childMsg = msg" msg="encore un autre test" color="blue"></ButtonComponent>
     <br>

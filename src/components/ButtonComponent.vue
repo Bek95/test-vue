@@ -1,4 +1,6 @@
 <script setup>
+import {ref} from "vue";
+
 const props = defineProps({
   msg: {
     type: Array,
@@ -18,11 +20,14 @@ const clickHandler = () => {
   console.log('click : ' + props.msg + ' - ' + props.color)
   emit('compMsg', props.msg)
 }
+
+const slot = ref('Default SLOT')
 </script>
 
 <template>
 
   <h2 :class="color">{{ msg || "Default"}}</h2>
+  <p><slot>{{ slot }}</slot></p>
   <button @click="clickHandler">btn</button>
 
 </template>

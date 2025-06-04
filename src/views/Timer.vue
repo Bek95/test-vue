@@ -9,12 +9,18 @@ const round = ref(1)
 const time = ref(workDuration.value)
 const phase = ref('Work')
 const interval = ref<ReturnType<typeof setInterval> | null>(null)
+const isPaused = ref(false)
+
 
 const timeDisplay = computed(() => {
   const minutes = Math.floor(time.value / 60)
   const seconds = time.value % 60
   return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
 })
+
+const togglePause = () => {
+  isPaused.value = !isPaused.value
+}
 
 const start = () => {
   if (interval.value) clearInterval(interval.value)
@@ -24,6 +30,8 @@ const start = () => {
   time.value = workDuration.value
 
   interval.value = setInterval(() => {
+    if (isPaused.value) return
+
     if (phase.value === 'Rest') {
       if (time.value <= 5 && time.value > 0) {
         playCountdownBeep()
@@ -100,7 +108,6 @@ function playCountdownBeep() {
   }, 100) // Bip court
 }
 
-
 </script>
 
 <template>
@@ -116,6 +123,8 @@ function playCountdownBeep() {
 
     <p class="text-4xl font-mono">{{ timeDisplay }}</p>
     <button @click="start" class="mt-4 px-4 py-2 bg-blue-500 text-white rounded">Démarrer</button>
+    <button @click="togglePause"  :disabled="!interval" class="mt-2 px-4 py-2 bg-yellow-500 text-white rounded">{{ isPaused ? 'Reprendre' : 'Pause' }}</button>
+
   </div>
 </template>
 

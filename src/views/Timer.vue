@@ -121,7 +121,7 @@ function playCountdownBeep() {
       <input type="number" v-model.number="restDuration" class="border p-1 rounded mt-2" /> Récupération (s)<br>
     </div>
 
-    <p class="text-4xl font-mono">{{ timeDisplay }}</p>
+    <p class="text-4xl font-mono timer">{{ timeDisplay }}</p>
     <button @click="start" class="mt-4 px-4 py-2 bg-blue-500 text-white rounded">Démarrer</button>
     <button @click="togglePause"  :disabled="!interval" class="mt-2 px-4 py-2 bg-yellow-500 text-white rounded">{{ isPaused ? 'Reprendre' : 'Pause' }}</button>
 
@@ -131,5 +131,10 @@ function playCountdownBeep() {
 <style scoped>
 button:hover {
   background-color: #2563eb;
+}
+
+.timer {
+  font-size: 50px;
+  font-weight: bold;
 }
 </style>

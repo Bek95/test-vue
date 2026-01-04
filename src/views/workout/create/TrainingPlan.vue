@@ -1,36 +1,40 @@
 <script setup>
 import { ref } from 'vue'
 
-import { faPlus, faDumbbell, faFire, faPersonRunning, faClock, faStopwatch20, faHourglass, faChildReaching } from "@fortawesome/free-solid-svg-icons";
+// import { faPlus, faDumbbell, faFire, faPersonRunning, faClock, faStopwatch20, faHourglass, faChildReaching } from "@fortawesome/free-solid-svg-icons";
+
+// todo insert exercices into one block
+
+
 
 let id = 0
 const trainingTypes = ref([
-  {id: id, name: "warm-up", borderLeftColor: "warmup-border-left-color"},
-  {id: id, name: "musculation", borderLeftColor: "classical-border-left-color"},
-  {id: id, name: "amrap", borderLeftColor: "amrap-border-left-color"},
-  {id: id, name: "fortime", borderLeftColor: "fortime-border-left-color"},
-  {id: id, name: "tabata", borderLeftColor: "tabata-border-left-color"},
-  {id: id, name: "emom", borderLeftColor: "emom-border-left-color"},
-  {id: id, name: "cool down", borderLeftColor: "cool-down-border-left-color"},
+  {id: id++, name: "warm-up", borderLeftColor: "warmup-border-left-color"},
+  {id: id++, name: "musculation", borderLeftColor: "classical-border-left-color"},
+  {id: id++, name: "amrap", borderLeftColor: "amrap-border-left-color"},
+  {id: id++, name: "fortime", borderLeftColor: "fortime-border-left-color"},
+  {id: id++, name: "tabata", borderLeftColor: "tabata-border-left-color"},
+  {id: id++, name: "emom", borderLeftColor: "emom-border-left-color"},
+  {id: id++, name: "cool down", borderLeftColor: "cool-down-border-left-color"},
 ])
 
-const blocks =  ref([])
-const addBlock = () => {
-  // on crée un objet de base selon le type de block
-  const newBBlock = {
-    id: Date.now(), // ID unique pour la boucle v-for
-    type: type,
-    exercises: [],
-    settings: {
-      duration: 0,
-      rounds: 0,
-      repetitions: 0,
-      weight: 0,
-      rest: 60
-    }
-  }
-  blocks.value.push(newBBlock)
-}
+// const blocks =  ref([])
+// const addBlock = () => {
+//   // on crée un objet de base selon le type de block
+//   const newBBlock = {
+//     id: Date.now(), // ID unique pour la boucle v-for
+//     type: type,
+//     exercises: [],
+//     settings: {
+//       duration: 0,
+//       rounds: 0,
+//       repetitions: 0,
+//       weight: 0,
+//       rest: 60
+//     }
+//   }
+//   blocks.value.push(newBBlock)
+// }
 </script>
 
 <template>
@@ -45,7 +49,16 @@ const addBlock = () => {
         </div>
         <p class="card-text">Ajouter un bloc de type : [warmup, musculation classique, crosstraining, cool down]</p>
         <div class="btn-group d-flex flex-column">
-          <button v-for="training in trainingTypes"  class="btn btn-outline-secondary m-2" :class="training.borderLeftColor">{{ training.name.toUpperCase() }}</button>
+<!--          <button v-for="training in trainingTypes"  class="btn btn-outline-secondary m-2" :class="training.borderLeftColor">{{ training.name.toUpperCase() }}</button>-->
+          <router-link
+              v-for="training in trainingTypes"
+              :key="training.id"
+              class="btn btn-outline-secondary m-2 text-start"
+              :class="training.borderLeftColor"
+              :to="{ name: 'add-exercice', query: { type: training.name } }"
+          >
+            {{ training.name.toUpperCase() }}
+          </router-link>
         </div>
         <div class="m-2 text-end">
           <router-link :to="{ name: 'workout-create' }" class="btn btn-secondary">Retour</router-link>

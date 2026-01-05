@@ -9,13 +9,13 @@ import { ref } from 'vue'
 
 let id = 0
 const trainingTypes = ref([
-  {id: id++, name: "warm-up", borderLeftColor: "warmup-border-left-color"},
+  // {id: id++, name: "warm-up", borderLeftColor: "warmup-border-left-color"},
   {id: id++, name: "musculation", borderLeftColor: "classical-border-left-color"},
   {id: id++, name: "amrap", borderLeftColor: "amrap-border-left-color"},
   {id: id++, name: "fortime", borderLeftColor: "fortime-border-left-color"},
   {id: id++, name: "tabata", borderLeftColor: "tabata-border-left-color"},
   {id: id++, name: "emom", borderLeftColor: "emom-border-left-color"},
-  {id: id++, name: "cool down", borderLeftColor: "cool-down-border-left-color"},
+  // {id: id++, name: "cool down", borderLeftColor: "cool-down-border-left-color"},
 ])
 
 // const blocks =  ref([])

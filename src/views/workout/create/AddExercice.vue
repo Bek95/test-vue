@@ -2,6 +2,7 @@
 import { useRoute } from 'vue-router'
 import { ref, computed, watch } from 'vue'
 import draggable from 'vuedraggable'
+import { faTrashCan, faPlus } from '@fortawesome/free-solid-svg-icons'
 
 const route = useRoute()
 const selectedType = computed(() => route.query.type)
@@ -79,11 +80,6 @@ const addExercice = () => {
   rest.value = ''
 }
 
-watch(() => settings.value, () => {
-  console.log('watch : ')
-})
-
-
 // AUTOMATISATION : On surveille les changements
 watch([isSupersetEnabled, () => blockExercices.value.length, () => settings.value.restTime], () => {
   if (isSupersetEnabled.value) {
@@ -94,6 +90,12 @@ watch([isSupersetEnabled, () => blockExercices.value.length, () => settings.valu
     })
   }
 }, { deep: true })
+
+
+// REMOVE EXERCICE
+const removeExo = (index) => {
+  blockExercices.value = blockExercices.value.filter(exo => exo.id !== blockExercices.value[index].id)
+}
 
 </script>
 
@@ -161,9 +163,10 @@ watch([isSupersetEnabled, () => blockExercices.value.length, () => settings.valu
                 </div>
 
                 <span :class="['badge rounded-pill', element.restTime === 0 ? 'bg-warning text-dark' : 'bg-light text-dark border']">
-        <i v-if="element.restTime === 0" class="bi bi-lightning-fill me-1"></i>
-        Repos : {{ element.restTime }}s
-      </span>
+                  <i v-if="element.restTime === 0" class="bi bi-lightning-fill me-1"></i>
+                  Repos : {{ element.restTime }}s
+                </span>
+                <button type="button" class="btn btn-danger ms-2" @click="removeExo(index)"><FontAwesomeIcon :icon="faTrashCan" /></button>
               </li>
             </template>
           </draggable>
@@ -207,9 +210,7 @@ watch([isSupersetEnabled, () => blockExercices.value.length, () => settings.valu
             <input type="number" v-model="reps" class="form-control" placeholder="Reps">
           </div>
 
-          <button @click="addExercice" class="btn btn-primary">
-             add
-          </button>
+          <button @click="addExercice" class="btn btn-primary"><FontAwesomeIcon :icon="faPlus" /></button>
         </div>
 
         <div class="mt-4 pt-3 border-top text-end">

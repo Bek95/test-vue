@@ -1,6 +1,7 @@
 <script setup>
 import { useRoute } from 'vue-router'
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
+import draggable from 'vuedraggable'
 
 const route = useRoute()
 const selectedType = computed(() => route.query.type)
@@ -11,6 +12,9 @@ const showDropdown = ref(false)
 const selectedExo = ref(null)
 const sets = ref(4)
 const reps = ref(0)
+const superset = computed(() => blockExercices.value.length > 1)
+const isSupersetEnabled = ref(false)
+let supersetExercicesOrder = 1
 
 const settings = ref({
   timer: 0,
@@ -45,13 +49,51 @@ const selectExo = (exo) => {
   showDropdown.value = false
 }
 
-const exercicesSelected = ref([])
+const blockExercices = ref([])
 
-
-//todo hydrater les réglages et l'exo qu'on ajoute, oenser ensuite à supprimer
 const addExercice = () => {
-  console.log(selectedExo.value, ' - sets : ' + sets.value)
+  const rest = ref('')
+  if (!selectedExo.value) return
+
+  // VERIFICATION : On empêche le même exercice dans le même bloc
+  const isAlreadyInBlock = blockExercices.value.some(exo => exo.id === selectedExo.value.id)
+
+  if (isAlreadyInBlock) {
+    alert("Cet exercice est déjà dans le bloc. Pour un superset, choisissez un exercice différent.")
+    return
+  }
+
+  rest.value = settings.value.restTime
+
+  blockExercices.value.push({
+    id: selectedExo.value.id,
+    order: supersetExercicesOrder++,
+    name: selectedExo.value.name,
+    sets: sets.value,
+    reps: reps.value,
+    restTime: rest.value,
+  })
+
+  searchQuery.value = ''
+  selectedExo.value = null
+  rest.value = ''
 }
+
+watch(() => settings.value, () => {
+  console.log('watch : ')
+})
+
+
+// AUTOMATISATION : On surveille les changements
+watch([isSupersetEnabled, () => blockExercices.value.length, () => settings.value.restTime], () => {
+  if (isSupersetEnabled.value) {
+    const lastIndex = blockExercices.value.length - 1
+    blockExercices.value.forEach((exo, index) => {
+      // Repos à 0 sauf pour le dernier du bloc
+      exo.restTime = (index === lastIndex) ? settings.value.restTime : 0
+    })
+  }
+}, { deep: true })
 
 </script>
 
@@ -68,6 +110,10 @@ const addExercice = () => {
             <div class="col-md-6">
               <label class="form-label small fw-bold">Repos entre les séries (sec)</label>
               <input type="number" v-for="i in 1" v-model="settings.restTime" class="form-control w-50">
+              <div v-if="superset" class="mt-2">
+                <input type="checkbox" class="form-check-input me-2" id="isSuperset" v-model="isSupersetEnabled">
+                <label class="form-check-label" for="isSuperset">Ajouter des superséries ({{ blockExercices.length }})</label>
+              </div>
             </div>
           </div>
 
@@ -96,6 +142,31 @@ const addExercice = () => {
               <input type="number" v-model="settings.rounds" class="form-control">
             </div>
           </div>
+        </div>
+
+        <div class="mt-3">
+          <h6 class="small text-muted text-uppercase">Aperçu du bloc :</h6>
+          <draggable
+              v-model="blockExercices"
+              tag="ul"
+              item-key="order"
+              class="list-group list-group-flush mb-3"
+              ghost-class="bg-light"
+          >
+            <template #item="{ element, index }">
+              <li class="list-group-item d-flex justify-content-between align-items-center" style="cursor: move;">
+                <div>
+                  <strong>{{ element.name }}</strong>
+                  <span class="text-muted ms-2">({{ element.sets }}x{{ element.reps }})</span>
+                </div>
+
+                <span :class="['badge rounded-pill', element.restTime === 0 ? 'bg-warning text-dark' : 'bg-light text-dark border']">
+        <i v-if="element.restTime === 0" class="bi bi-lightning-fill me-1"></i>
+        Repos : {{ element.restTime }}s
+      </span>
+              </li>
+            </template>
+          </draggable>
         </div>
 
         <hr>
@@ -153,4 +224,7 @@ const addExercice = () => {
 <style scoped>
 /* Pour s'assurer que la liste flottante ne soit pas coupée par la card */
 .card { overflow: visible !important; }
+li {
+  list-style: none;
+}
 </style>

@@ -53,7 +53,7 @@ const selectExo = (exo) => {
 const blockExercices = ref([])
 
 const addExercice = () => {
-  const rest = ref('')
+  let rest = 0
   if (!selectedExo.value) return
 
   // VERIFICATION : On empêche le même exercice dans le même bloc
@@ -64,7 +64,7 @@ const addExercice = () => {
     return
   }
 
-  rest.value = settings.value.restTime
+  rest = settings.value.restTime
 
   blockExercices.value.push({
     id: selectedExo.value.id,
@@ -72,12 +72,12 @@ const addExercice = () => {
     name: selectedExo.value.name,
     sets: sets.value,
     reps: reps.value,
-    restTime: rest.value,
+    restTime: rest,
   })
 
   searchQuery.value = ''
   selectedExo.value = null
-  rest.value = ''
+  rest = 0
 }
 
 // AUTOMATISATION : On surveille les changements

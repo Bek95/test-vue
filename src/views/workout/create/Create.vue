@@ -1,5 +1,22 @@
 <script setup>
 
+import { ref } from 'vue'
+import {useWorkoutStore} from "@/workoutStore.js";
+
+let sessionNumber = 1
+const workoutName = ref('Mon nouveau programme')
+const sessionName = ref('')
+
+const workoutStore = useWorkoutStore()
+const createWorkout = () => {
+  if (sessionName.value === null) {
+    sessionName.value = 'Séance ' + sessionNumber++
+  }
+
+  workoutStore.initNewWorkout(workoutName.value, sessionName.value)
+  console.log(workoutStore);
+}
+
 </script>
 
 <template>
@@ -7,13 +24,13 @@
     <h1>Nouveau Programme</h1>
     <div class="mb-3">
       <label class="form-label">Nom du programme :</label>
-      <input type="text" class="form-control" placeholder="Ex: Fat Body">
+      <input type="text" class="form-control" placeholder="Ex: mon nouveau programme" v-model="workoutName" />
     </div>
     <div class="mb-3">
       <label class="form-label">Nom de la séance :</label>
-      <input type="text" class="form-control" placeholder="Ex: Séance 1">
+      <input type="text" class="form-control" placeholder="Ex: Séance 1" v-model="sessionName">
     </div>
-    <router-link :to="{ name: 'training-plan-create' }" class="btn btn-primary">
+    <router-link :to="{ name: 'training-plan-create' }" class="btn btn-primary" @click="createWorkout">
       Continuer
     </router-link>
   </div>

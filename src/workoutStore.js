@@ -7,13 +7,7 @@ export const useWorkoutStore = defineStore('workout', {
             id: crypto.randomUUID(),
             name: '',
             description: '',
-            sessions: [
-                {
-                    id: crypto.randomUUID(),
-                    name: '',
-                    blocs: []
-                }
-            ]
+            sessions: []
         },
         currentSessionId: null,
         // On peut aussi stocker ici les catalogues pour éviter de les recharger
@@ -28,9 +22,6 @@ export const useWorkoutStore = defineStore('workout', {
         // initialisation du nom et de la séance du programme
         initNewWorkout(workoutName, sessionName) {
             this.workout.name = workoutName
-
-
-
             this.workout.sessions = []
             this.addNewSession(sessionName)
         },
@@ -39,7 +30,7 @@ export const useWorkoutStore = defineStore('workout', {
             const newSession = {
                 id: crypto.randomUUID(),
                 name: sessionName || `Séance ${this.workout.sessions.length + 1  }`,
-                blocs: []
+                blocks: []
             }
 
             this.workout.sessions.push(newSession)
@@ -48,12 +39,12 @@ export const useWorkoutStore = defineStore('workout', {
         },
 
         // Ajouter un bloc à la séance active
-        addBlockToCurrentSession(newBlock) {
+        addBlockToCurrentSession(blockData) {
             const session = this.workout.sessions.find(s => s.id === this.currentSessionId)
             if (session) {
-                session.blocs.push({
+                session.blocks.push({
                     id: crypto.randomUUID(),
-                    ...newBlock
+                    ...blockData,
                 })
             }
         },
@@ -69,6 +60,13 @@ export const useWorkoutStore = defineStore('workout', {
     },
 
     getters: {
-        activeSession: (state) => state.workout.sessions.find(s => s.id === state.currentSeanceId)
+        workoutName: (state) => state.workout.name,
+
+        activeSession: (state) => state.workout.sessions.find(s => s.id === state.currentSessionId),
+
+        activeSessionName: (state) => {
+            const session = state.workout.sessions.find(s => s.id === state.currentSessionId)
+            return session ? session.name : ''
+        }
     }
 })

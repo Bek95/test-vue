@@ -3,9 +3,12 @@ import { useRoute } from 'vue-router'
 import { ref, computed, watch } from 'vue'
 import draggable from 'vuedraggable'
 import { faTrashCan, faPlus } from '@fortawesome/free-solid-svg-icons'
+import {useWorkoutStore} from "@/workoutStore.js";
+import router from "@/router/router.js";
 
 const route = useRoute()
 const selectedType = computed(() => route.query.type)
+const blockName = computed(() => route.query.block_name)
 
 // État de la recherche et sélection
 const searchQuery = ref('')
@@ -52,6 +55,8 @@ const selectExo = (exo) => {
 
 const blockExercices = ref([])
 
+const workoutStore = useWorkoutStore()
+
 const addExercice = () => {
   let rest = 0
   if (!selectedExo.value) return
@@ -88,13 +93,58 @@ watch([isSupersetEnabled, () => blockExercices.value.length, () => settings.valu
       // Repos à 0 sauf pour le dernier du bloc
       exo.restTime = (index === lastIndex) ? settings.value.restTime : 0
     })
+    // console.log('isSupersetEnabled : ', isSupersetEnabled.value, 'Bloc exercices : ', blockExercices.value)
   }
+
+  // if (isSupersetEnabled.value === false) {
+  //   console.log('isSupersetEnabled : ', settings.value.restTime)
+  //   blockExercices.value.forEach((exo) => {
+  //     exo.restTime = settings.value.restTime
+  //   })
+  //
+  //   console.log('blockExercices : ', blockExercices.value)
+  // }=
 }, { deep: true })
 
 
 // REMOVE EXERCICE
 const removeExo = (index) => {
   blockExercices.value = blockExercices.value.filter(exo => exo.id !== blockExercices.value[index].id)
+}
+
+const finalBlockExercices = ref([])
+
+const saveBlock = () => {
+// console.log(blockName)
+  if(blockExercices.value.length === 0) {
+    return alert("veuillez selectionner un exercice")
+  }
+
+  // console.log(isSupersetEnabled.value)
+  if(isSupersetEnabled.value === false) {
+    // blockExercices.value.forEach((exo) => {
+    //
+    // })
+
+    const supersetBlock = {
+      id: crypto.randomUUID(),
+      name: blockName.value,
+      type: selectedType.value,
+      isSuperset: isSupersetEnabled.value,
+      exercices: blockExercices.value.map(exo => ({
+        name: exo.name,
+        accessory: null,
+        sets: exo.sets,
+        reps: exo.reps,
+        restTime: exo.restTime,
+      }))
+    }
+
+    workoutStore.addBlockToCurrentSession(supersetBlock)
+  }
+
+  router.push({name: 'draft-summary'})
+
 }
 
 </script>
@@ -215,7 +265,7 @@ const removeExo = (index) => {
 
         <div class="mt-4 pt-3 border-top text-end">
           <router-link :to="{ name: 'workout-create' }" class="btn btn-outline-secondary">Annuler</router-link>
-          <button class="btn btn-success ms-2">Enregistrer ce bloc</button>
+          <button class="btn btn-success ms-2" @click="saveBlock" >Enregistrer ce bloc</button>
         </div>
       </div>
     </div>

@@ -1,11 +1,11 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 
 // import { faPlus, faDumbbell, faFire, faPersonRunning, faClock, faStopwatch20, faHourglass, faChildReaching } from "@fortawesome/free-solid-svg-icons";
 
+const blockName = ref('Mon block')
+
 // todo insert exercices into one block
-
-
 
 let id = 0
 const trainingTypes = ref([
@@ -45,7 +45,7 @@ const trainingTypes = ref([
       <div class="card-body">
         <div class="mb-3">
           <h5 class="card-title"><label class="form-label">Nom du bloc :</label></h5>
-          <input type="text" class="form-control" placeholder="Ex: Musculation - force">
+          <input type="text" class="form-control" placeholder="Ex: Musculation - force" v-model="blockName">
         </div>
         <p class="card-text">Ajouter un bloc de type : [warmup, musculation classique, crosstraining, cool down]</p>
         <div class="btn-group d-flex flex-column">
@@ -55,7 +55,7 @@ const trainingTypes = ref([
               :key="training.id"
               class="btn btn-outline-secondary m-2 text-start"
               :class="training.borderLeftColor"
-              :to="{ name: 'add-exercice', query: { type: training.name } }"
+              :to="{ name: 'add-exercice', query: { type: training.name, block_name: blockName } }"
           >
             {{ training.name.toUpperCase() }}
           </router-link>

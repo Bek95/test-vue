@@ -14,7 +14,7 @@ const createWorkout = () => {
   }
 
   workoutStore.initNewWorkout(workoutName.value, sessionName.value)
-  console.log(workoutStore);
+  // console.log(workoutStore);
 }
 
 </script>

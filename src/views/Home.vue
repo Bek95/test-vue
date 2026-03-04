@@ -46,8 +46,6 @@ const slot = ref('toto')
       <br>
       <br>
       <br>
-
-
     </main>
 </template>
 

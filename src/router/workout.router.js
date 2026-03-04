@@ -22,6 +22,11 @@ const workoutRouter = [
                 path:'add-exercice',
                 name:'add-exercice',
                 component: () => import('@/views/workout/create/AddExercice.vue'),
+            },
+            {
+                path:'draft-summary',
+                name:'draft-summary',
+                component: () => import('@/views/workout/create/DraftSummary.vue'),
             }
 
         ]

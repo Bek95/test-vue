@@ -16,6 +16,12 @@ const addNewItem = () => {
   )
 }
 
+const removeItem = (id) => {
+  items.value = items.value.filter((item) => item.id !== id )
+
+  console.log(items.value)
+}
+
 
 
 </script>
@@ -34,7 +40,7 @@ const addNewItem = () => {
   </div>
   <div>
     <ul>
-      <li v-for="item in items">{{ item.text }}</li>
+      <li v-for="item in items">{{ item.text }}<button class="ms-2" @click="removeItem(item.id)">X</button></li>
     </ul>
   </div>
 <div>

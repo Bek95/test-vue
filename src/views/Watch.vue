@@ -33,7 +33,7 @@ watch(note, (nouvelleNote, ancienneNote) => {
   clearTimeout(timer)
 
   timer = setTimeout(() => {
-    statut.value = "Toutes les modifications sont enregistrées ✅"
+    statut.value = "Toutes les modifications sont enregistrées"
   }, 1000)
 })
 

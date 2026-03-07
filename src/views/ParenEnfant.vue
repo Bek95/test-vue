@@ -4,7 +4,7 @@ import AlerteMessage from '@/components/AlerteMessage.vue'
 import BoutonVote from '@/components/BoutonVote.vue'
 import TaskComponent from "@/components/TaskComponent.vue";
 import TaskForm from "@/components/TaskForm.vue";
-import {map} from "vuedraggable/dist/vuedraggable.common.js";
+import BaseCard from "@/components/BaseCard.vue"
 
 const alerts = ref([
   { message: 'vous avez réussier', type: 'success', class:'alert alert-success' },
@@ -23,12 +23,13 @@ const incrementerVote = (valeurDuVote) => {
 let id = 1
 
 const tasks = ref([
-  {name: 'tondre la pelouse', id: id++},
-  {name: 'vérifier la tronçonneuse', id: id++},
-  {name: 'robinetterie douche', id: id++},
-  {name: 'robinetterie wc', id: id++},
+  {id: id++, name: 'tondre la pelouse', done: false},
+  {id: id++, name: 'vérifier la tronçonneuse', done: false},
+  {id: id++, name: 'robinetterie douche', done: false},
+  {id: id++, name: 'robinetterie wc', done: false},
 ])
 
+localStorage.clear()
 
 const removeTask = (id) => {
   return tasks.value = tasks.value.filter((v) => v.id !== id)
@@ -39,7 +40,7 @@ const getTotalTasks = computed(() => {
 })
 
 const ajoutTache = (newTask) => {
-  tasks.value.push({name: newTask, id: id++})
+  tasks.value.push({id: id++, name: newTask, done: false})
 }
 
 watch(tasks, newTasks => {
@@ -57,6 +58,16 @@ onMounted(() => {
     }
   }
 })
+
+const toggleTaskStatus = (idTask) => {
+  const task = tasks.value.find(t => t.id === idTask)
+  if (task) {
+    task.done = !task.done // Si c'était vrai, ça devient faux, et inversement
+  }
+}
+
+
+const red = ref('red')
 
 
 </script>
@@ -82,7 +93,7 @@ onMounted(() => {
     <div class="card" style="width: 18rem;">
       <div class="card-body">
         <h5 class="card-title">TODO LIST</h5>
-        <TaskComponent v-for="task in tasks" :name="task.name" :id="task.id" @supprimerTache="removeTask"/>
+        <TaskComponent v-for="task in tasks" :task="task" @supprimerTache="removeTask" @isDone="toggleTaskStatus"/>
       </div>
       <div>
         nombre de taches : {{ getTotalTasks }}
@@ -94,6 +105,18 @@ onMounted(() => {
       </div>
     </div>
   </div>
+
+
+  <hr>
+  <h1>exercice - slot</h1>
+  <BaseCard :cssClassTtext="red">
+    <template v-slot:header>
+      <h3>test d'un slot</h3>
+    </template>
+    <template v-slot:body-card>
+      <p>paragraphe du slot</p>
+    </template>
+  </BaseCard>
 
 
 

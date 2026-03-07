@@ -1,20 +1,21 @@
 <script setup>
 
 defineProps({
-  name: {
-    type: String,
-    required: true,
-  },
-  id: {
-    type: Number,
-    required: true,
-  },
+  task: {
+    type: Object,
+    required: true
+  }
 })
 
-const emits = defineEmits(['supprimerTache'])
+const emits = defineEmits(['supprimerTache', 'isDone'])
 
 const supprimerTache = (id) => {
   emits('supprimerTache', id)
+}
+
+
+const isDone = (id) => {
+  emits('isDone', id)
 }
 
 
@@ -23,17 +24,22 @@ const supprimerTache = (id) => {
 <template>
   <ul class="d-flex justify-around">
     <li>
-      <span class="me-2">{{ name }}</span>
+      <input type="checkbox" name="done" id="done" :checked="task.done" @click="isDone(task.id)"/>
+      <span class="me-2" :class="{ 'completed' : task.done }">{{ task.name }}</span>
       <span>
-        <button type="button" class="btn btn-danger" @click="supprimerTache(id)">x</button>
+        <button type="button" class="btn btn-danger" @click="supprimerTache(task.id)">x</button>
       </span>
     </li>
   </ul>
 </template>
 
 <style scoped>
-ul>li {
+ul> li {
   list-style: none;
 }
 
+.completed {
+  text-decoration: line-through;
+  color: #6c757d;
+}
 </style>

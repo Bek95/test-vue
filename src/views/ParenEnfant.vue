@@ -116,6 +116,9 @@ const red = ref('red')
     <template v-slot:body-card>
       <p>paragraphe du slot</p>
     </template>
+    <template v-slot:default>
+      <p>default slot</p>
+    </template>
   </BaseCard>
 
 

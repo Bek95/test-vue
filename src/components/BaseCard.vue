@@ -17,7 +17,9 @@ defineProps({
   <div>
     <slot name="body-card"></slot>
   </div>
-  <slot></slot>
+    <div class="d-flex justify-center w-10" style="border: red">
+      <slot name="default"></slot>
+    </div>
 </div>
 </template>
 

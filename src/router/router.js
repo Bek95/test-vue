@@ -7,17 +7,18 @@ import Watch from "@/views/Watch.vue";
 import ParenEnfant from "@/views/ParenEnfant.vue";
 
 import workoutRouter from "@/router/workout.router.js";
-
-
+import userRouter from "@/router/user.router.js";
 
 const routes = [
-    { path: '/', component: Home },
+    { path: '/', name:'home', component: Home },
     { path: '/nonogramme', component: Nonogramme },
     { path: '/timer', component: Timer },
     { path: '/computed', component: Computed },
     { path: '/watch', component: Watch },
     { path: '/parent-enfant', component: ParenEnfant },
-    ...workoutRouter
+    ...workoutRouter,
+    ...userRouter,
+
 ]
 
 const router = createRouter({

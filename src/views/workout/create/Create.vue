@@ -3,18 +3,17 @@
 import { ref } from 'vue'
 import {useWorkoutStore} from "@/workoutStore.js";
 
-let sessionNumber = 1
+
 const workoutName = ref('Mon nouveau programme')
 const sessionName = ref('')
 
 const workoutStore = useWorkoutStore()
 const createWorkout = () => {
-  if (sessionName.value === null) {
-    sessionName.value = 'Séance ' + sessionNumber++
+  let countSession = workoutStore.countSession + 1
+  if (sessionName.value === null || sessionName.value === '') {
+    sessionName.value = 'Séance ' + countSession
   }
-
   workoutStore.initNewWorkout(workoutName.value, sessionName.value)
-  // console.log(workoutStore);
 }
 
 </script>

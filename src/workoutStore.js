@@ -18,7 +18,6 @@ export const useWorkoutStore = defineStore('workout', {
     }),
 
     actions: {
-
         // initialisation du nom et de la séance du programme
         initNewWorkout(workoutName, sessionName) {
             this.workout.name = workoutName
@@ -34,7 +33,6 @@ export const useWorkoutStore = defineStore('workout', {
             }
 
             this.workout.sessions.push(newSession)
-
             this.currentSessionId = newSession.id
         },
 
@@ -67,6 +65,30 @@ export const useWorkoutStore = defineStore('workout', {
         activeSessionName: (state) => {
             const session = state.workout.sessions.find(s => s.id === state.currentSessionId)
             return session ? session.name : ''
+        },
+
+        countSession: (state) => {
+            return state.workout.sessions.length
+        },
+
+        exercices() {
+
+            // const exercices = []
+            //
+            // this.workout.sessions.forEach(session => {
+            //     session.blocks.forEach(block => {
+            //         if (block.exercices) {
+            //             exercices.push(...block.exercices)
+            //         }
+            //     })
+            // })
+            //
+            // return exercices
+
+
+            return this.workout.sessions.flatMap(session =>
+                session.blocks.flatMap(block => block.exercices ?? [])
+            )
         }
     }
 })

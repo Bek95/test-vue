@@ -15,10 +15,19 @@ const searchQuery = ref('')
 const showDropdown = ref(false)
 const selectedExo = ref(null)
 const sets = ref(4)
-const reps = ref(0)
+const reps = ref('')
 const superset = computed(() => blockExercices.value.length > 1)
 const isSupersetEnabled = ref(false)
 let supersetExercicesOrder = 1
+const isMax = ref(false)
+const isDisable = ref(false)
+
+watch(isMax, (newValue) => {
+  isDisable.value = newValue
+  reps.value = 'max'
+})
+
+const oldRestValue = ref([])
 
 const settings = ref({
   timer: 0,
@@ -48,6 +57,7 @@ const filteredExercices = computed(() => {
 })
 
 const selectExo = (exo) => {
+  isHidden.value = true
   selectedExo.value = exo
   searchQuery.value = exo.name.toUpperCase()
   showDropdown.value = false
@@ -57,9 +67,15 @@ const blockExercices = ref([])
 
 const workoutStore = useWorkoutStore()
 
+const isHidden = ref(true)
+
+
 const addExercice = () => {
   let rest = 0
-  if (!selectedExo.value) return
+
+  if (!selectedExo.value) {
+    return isHidden.value = false
+  }
 
   // VERIFICATION : On empêche le même exercice dans le même bloc
   const isAlreadyInBlock = blockExercices.value.some(exo => exo.id === selectedExo.value.id)
@@ -83,28 +99,50 @@ const addExercice = () => {
   searchQuery.value = ''
   selectedExo.value = null
   rest = 0
+  isDisable.value = false
+  isMax.value = false
 }
 
-// AUTOMATISATION : On surveille les changements
-watch([isSupersetEnabled, () => blockExercices.value.length, () => settings.value.restTime], () => {
-  if (isSupersetEnabled.value) {
-    const lastIndex = blockExercices.value.length - 1
-    blockExercices.value.forEach((exo, index) => {
-      // Repos à 0 sauf pour le dernier du bloc
-      exo.restTime = (index === lastIndex) ? settings.value.restTime : 0
-    })
-    // console.log('isSupersetEnabled : ', isSupersetEnabled.value, 'Bloc exercices : ', blockExercices.value)
-  }
 
-  // if (isSupersetEnabled.value === false) {
-  //   console.log('isSupersetEnabled : ', settings.value.restTime)
-  //   blockExercices.value.forEach((exo) => {
-  //     exo.restTime = settings.value.restTime
-  //   })
-  //
-  //   console.log('blockExercices : ', blockExercices.value)
-  // }=
-}, { deep: true })
+// watch([isSupersetEnabled, () => blockExercices.value.length], ([enabled], [oldEnabled]) => {
+//
+//   blockExercices.value.forEach((exo, index) => {
+//     const isLast = index === blockExercices.value.length - 1;
+//
+//     if (enabled) {
+//       // On passe en superset : on met à 0 sauf le dernier
+//       exo.restTime = isLast ? settings.value.restTime : 0;
+//     } else if (oldEnabled && !enabled) {
+//       // On vient de décocher le superset : on remet la valeur par défaut partout
+//       exo.restTime = settings.value.restTime;
+//     }
+//   });
+//
+// }, { deep: true });
+
+const exercicesAffiches = computed({
+  get() {
+    // On s'assure que blockExercices existe et n'est pas nul
+    if (!blockExercices.value) return [];
+
+    return blockExercices.value.map((exo, index) => {
+      const isLast = index === blockExercices.value.length - 1;
+      return {
+        ...exo,
+        // Utilise une valeur par défaut sécurisée (0 ou le restTime des settings)
+        calculatedRest: (isSupersetEnabled.value && !isLast) ? 0 : (settings.value?.restTime || 60)
+      };
+    });
+  },
+  set(newValue) {
+    // On met à jour uniquement si la valeur a réellement changé
+    if (newValue) {
+      blockExercices.value = [...newValue];
+    }
+  }
+});
+
+
 
 
 // REMOVE EXERCICE
@@ -115,36 +153,24 @@ const removeExo = (index) => {
 const finalBlockExercices = ref([])
 
 const saveBlock = () => {
-// console.log(blockName)
-  if(blockExercices.value.length === 0) {
-    return alert("veuillez selectionner un exercice")
+  if(blockExercices.value.length === 0) return alert("veuillez selectionner un exercice");
+
+  const supersetBlock = {
+    id: crypto.randomUUID(),
+    name: blockName.value,
+    type: selectedType.value,
+    isSuperset: isSupersetEnabled.value,
+    // On mappe sur exercicesAffiches pour avoir les bons temps de repos (0 ou restTime)
+    exercices: exercicesAffiches.value.map(exo => ({
+      name: exo.name,
+      sets: exo.sets,
+      reps: exo.reps,
+      restTime: exo.calculatedRest, // On prend la valeur calculée finale
+    }))
   }
 
-  // console.log(isSupersetEnabled.value)
-  if(isSupersetEnabled.value === false) {
-    // blockExercices.value.forEach((exo) => {
-    //
-    // })
-
-    const supersetBlock = {
-      id: crypto.randomUUID(),
-      name: blockName.value,
-      type: selectedType.value,
-      isSuperset: isSupersetEnabled.value,
-      exercices: blockExercices.value.map(exo => ({
-        name: exo.name,
-        accessory: null,
-        sets: exo.sets,
-        reps: exo.reps,
-        restTime: exo.restTime,
-      }))
-    }
-
-    workoutStore.addBlockToCurrentSession(supersetBlock)
-  }
-
+  workoutStore.addBlockToCurrentSession(supersetBlock)
   router.push({name: 'draft-summary'})
-
 }
 
 </script>
@@ -199,9 +225,9 @@ const saveBlock = () => {
         <div class="mt-3">
           <h6 class="small text-muted text-uppercase">Aperçu du bloc :</h6>
           <draggable
-              v-model="blockExercices"
+              v-model="exercicesAffiches"
               tag="ul"
-              item-key="order"
+              item-key="id"
               class="list-group list-group-flush mb-3"
               ghost-class="bg-light"
           >
@@ -212,11 +238,14 @@ const saveBlock = () => {
                   <span class="text-muted ms-2">({{ element.sets }}x{{ element.reps }})</span>
                 </div>
 
-                <span :class="['badge rounded-pill', element.restTime === 0 ? 'bg-warning text-dark' : 'bg-light text-dark border']">
-                  <i v-if="element.restTime === 0" class="bi bi-lightning-fill me-1"></i>
-                  Repos : {{ element.restTime }}s
-                </span>
-                <button type="button" class="btn btn-danger ms-2" @click="removeExo(index)"><FontAwesomeIcon :icon="faTrashCan" /></button>
+                <span :class="['badge rounded-pill', element.calculatedRest === 0 ? 'bg-warning text-dark' : 'bg-light text-dark border']">
+        <i v-if="element.calculatedRest === 0" class="bi bi-lightning-fill me-1"></i>
+        Repos : {{ element.calculatedRest }}s
+      </span>
+
+                <button type="button" class="btn btn-danger ms-2" @click="removeExo(index)">
+                  <FontAwesomeIcon :icon="faTrashCan" />
+                </button>
               </li>
             </template>
           </draggable>
@@ -235,7 +264,11 @@ const saveBlock = () => {
                 @input="selectedExo = null"
                 class="form-control"
                 placeholder="Chercher..."
+                :class="{ 'is-invalid': !isHidden }"
             >
+            <div v-show="!isHidden" id="validationServer04Feedback" class="invalid-feedback" style="display:block">
+              Veuillez selectionner un exercice ...
+            </div>
 
             <div v-if="showDropdown && searchQuery" class="list-group position-absolute w-100 shadow mt-1"
                  style="max-height: 200px; overflow-y: auto; z-index: 1050;">
@@ -257,9 +290,15 @@ const saveBlock = () => {
             <input type="number" v-model="sets" class="form-control" placeholder="Sets">
           </div>
           <div style="width: 85px;">
-            <input type="number" v-model="reps" class="form-control" placeholder="Reps">
+            <input type="number" v-model="reps" class="form-control" placeholder="Reps" v-if="!isDisable ? 'disabled' : ''">
+          </div>
+          <div class="d-flex gap-2 align-items-center">
+            <input id="isMax" type="checkbox" v-model="isMax">
+            <label for="isMax">Jusqu'à l'échec</label>
           </div>
 
+        </div>
+        <div class="w-10 d-flex justify-content-end align-items-center">
           <button @click="addExercice" class="btn btn-primary"><FontAwesomeIcon :icon="faPlus" /></button>
         </div>
 

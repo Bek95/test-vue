@@ -7,8 +7,6 @@ const users = ref([])
 
 onMounted(async() => {
  try {
-
-
    const response = await api.get('/users');
 
    users.value =  response.data;

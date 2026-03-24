@@ -48,11 +48,10 @@ export const useWorkoutStore = defineStore('workout', {
         },
 
         // Supprimer une séance
-        removeSession(SessionId) {
-            this.workout.sessions = this.workout.sessions.filter(s => s.id !== SessionId)
-            // Si on a supprimé la séance active, on en prend une autre
-            if (this.currentSessionId === sessionId && this.workout.sessions.length > 0) {
-                this.currentSessionId = this.workout.sessions[0].id
+        removeSession(sessionId) {
+            this.workout.sessions = this.workout.sessions.filter(s => s.id !== sessionId)
+            if (this.currentSessionId === sessionId) {
+                this.currentSessionId = this.workout.sessions.length > 0 ? this.workout.sessions[0].id : null
             }
         }
     },
@@ -62,16 +61,22 @@ export const useWorkoutStore = defineStore('workout', {
 
         activeSession: (state) => state.workout.sessions.find(s => s.id === state.currentSessionId),
 
-        activeSessionName: (state) => {
-            const session = state.workout.sessions.find(s => s.id === state.currentSessionId)
-            return session ? session.name : ''
+        activeSessionName() {
+            return this.activeSession?.name || '';
         },
 
         countSession: (state) => {
             return state.workout.sessions.length
         },
 
-        exercices() {
+        getCurrentBlockSessionId() {
+            return this.workout.sessions.flatMap(session =>
+                session.id
+            )
+        },
+
+        // blocks
+        blockExercices() {
 
             // const exercices = []
             //
@@ -89,6 +94,16 @@ export const useWorkoutStore = defineStore('workout', {
             return this.workout.sessions.flatMap(session =>
                 session.blocks.flatMap(block => block.exercices ?? [])
             )
+        },
+        getBlockExercicesId() {
+            return this.workout?.sessions?.flatMap(session =>
+                session.blocks.flatMap(block => block.id ?? ''))
+        },
+        hasSupersetBlock: (state) => {
+            return state.workout?.sessions?.some(session =>
+                session.blocks.some(block => block.isSuperset)
+            );
         }
-    }
+    },
+    persist: true,
 })

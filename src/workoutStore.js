@@ -1,109 +1,269 @@
+// stores/workoutStore.js
 import { defineStore } from 'pinia'
+
+// ─── Factories par type de bloc ───────────────────────────────────────────────
+
+function makeBaseExercice(overrides = {}) {
+    return {
+        id: crypto.randomUUID(),
+        name: '',
+        reps: null,
+        ...overrides,
+    }
+}
+
+const blockFactories = {
+    musculation: (overrides = {}) => ({
+        id: crypto.randomUUID(),
+        type: 'musculation',
+        backgroundColor: '#dba81a',
+        name: '',
+        exercices: [],
+        // champs spécifiques — sur l'exercice, pas le bloc
+        ...overrides,
+    }),
+
+    superset: (overrides = {}) => ({
+        id: crypto.randomUUID(),
+        type: 'superset',
+        backgroundColor: null,
+        name: '',
+        restTime: 60,   // partagé entre tous les exos du superset
+        exercices: [],
+        ...overrides,
+    }),
+
+    amrap: (overrides = {}) => ({
+        id: crypto.randomUUID(),
+        type: 'amrap',
+        backgroundColor: '#ed1123',
+        name: '',
+        timeCap: 10,    // en minutes
+        exercices: [],
+        ...overrides,
+    }),
+
+    emom: (overrides = {}) => ({
+        id: crypto.randomUUID(),
+        type: 'emom',
+        backgroundColor: '#a369c9',
+        name: '',
+        timeCap: 10,    // durée totale en minutes
+        interval: 60,   // durée d'un intervalle en secondes
+        exercices: [],
+        ...overrides,
+    }),
+
+    fortime: (overrides = {}) => ({
+        id: crypto.randomUUID(),
+        type: 'fortime',
+        backgroundColor: '#2c7d09',
+        name: '',
+        timeCap: 20,
+        exercices: [],
+        ...overrides,
+    }),
+
+    tabata: (overrides = {}) => ({
+        id: crypto.randomUUID(),
+        type: 'tabata',
+        backgroundColor: '#2f3ced',
+        name: '',
+        workTime: 20,   // secondes de travail
+        restTime: 10,   // secondes de repos (protocole, pas par exo)
+        rounds: 8,
+        exercices: [],
+        ...overrides,
+    }),
+}
+
+// Champs par défaut d'un exercice selon le type de bloc parent
+const exerciceDefaults = {
+    musculation:    () => makeBaseExercice({ sets: 4, reps: 8, restTime: 90 }),
+    superset: () => makeBaseExercice({ sets: 4, reps: 8 }),         // restTime hérité du bloc
+    amrap:    () => makeBaseExercice({ reps: 10 }),                  // pas de sets ni restTime
+    emom:     () => makeBaseExercice({ reps: 10 }),
+    fortime:  () => makeBaseExercice({ reps: 10 }),
+    tabata:   () => makeBaseExercice({ reps: null }),                // le protocole prime
+}
+
+// ─── Store ────────────────────────────────────────────────────────────────────
 
 export const useWorkoutStore = defineStore('workout', {
     state: () => ({
-        // Le brouillon complet
         workout: {
             id: crypto.randomUUID(),
             name: '',
             description: '',
-            sessions: []
+            sessions: [],
         },
         currentSessionId: null,
-        // On peut aussi stocker ici les catalogues pour éviter de les recharger
-        catalogues: {
-            exercises: [],
-            equipment: []
-        }
     }),
 
     actions: {
-        // initialisation du nom et de la séance du programme
-        initNewWorkout(workoutName, sessionName) {
-            this.workout.name = workoutName
-            this.workout.sessions = []
-            this.addNewSession(sessionName)
-        },
+        // ── Workout ──────────────────────────────────────────────────────────────
 
-        addNewSession(sessionName) {
-            const newSession = {
+        initNewWorkout(workoutName, firstSessionName) {
+            this.workout = {
                 id: crypto.randomUUID(),
-                name: sessionName || `Séance ${this.workout.sessions.length + 1  }`,
-                blocks: []
+                name: workoutName,
+                description: '',
+                sessions: [],
             }
-
-            this.workout.sessions.push(newSession)
-            this.currentSessionId = newSession.id
+            this.addSession(firstSessionName)
         },
 
-        // Ajouter un bloc à la séance active
-        addBlockToCurrentSession(blockData) {
-            const session = this.workout.sessions.find(s => s.id === this.currentSessionId)
-            if (session) {
-                session.blocks.push({
-                    id: crypto.randomUUID(),
-                    ...blockData,
-                })
+        // ── Sessions ─────────────────────────────────────────────────────────────
+
+        addSession(name) {
+            const session = {
+                id: crypto.randomUUID(),
+                name: name || `Séance ${this.workout.sessions.length + 1}`,
+                blocks: [],
             }
+            this.workout.sessions.push(session)
+            this.currentSessionId = session.id
         },
 
-        // Supprimer une séance
         removeSession(sessionId) {
             this.workout.sessions = this.workout.sessions.filter(s => s.id !== sessionId)
             if (this.currentSessionId === sessionId) {
-                this.currentSessionId = this.workout.sessions.length > 0 ? this.workout.sessions[0].id : null
+                this.currentSessionId = this.workout.sessions[0]?.id ?? null
             }
-        }
+        },
+
+        renameSession(sessionId, newName) {
+            const session = this._findSession(sessionId)
+            if (session) session.name = newName
+        },
+
+        setCurrentSession(sessionId) {
+            if (this.workout.sessions.some(s => s.id === sessionId)) {
+                this.currentSessionId = sessionId
+            }
+        },
+
+        // ── Blocs ─────────────────────────────────────────────────────────────────
+
+        /**
+         * @param {'musculation'|'superset'|'amrap'|'emom'|'fortime'|'tabata'} type
+         * @param {Object} overrides - champs à écraser sur le bloc
+         */
+        addBlock(type, overrides = {}) {
+            const factory = blockFactories[type]
+            if (!factory) {
+                console.warn(`[workoutStore] Type de bloc inconnu : "${type}"`)
+                return
+            }
+            const session = this._findCurrentSession()
+            if (!session) return
+
+            session.blocks.push(factory(overrides))
+        },
+
+        removeBlock(blockId) {
+            const session = this._findCurrentSession()
+            if (!session) return
+            session.blocks = session.blocks.filter(b => b.id !== blockId)
+        },
+
+        updateBlock(blockId, changes) {
+            const block = this._findBlock(blockId)
+            if (block) Object.assign(block, changes)
+        },
+
+        reorderBlocks(newBlocksOrder) {
+            const session = this._findCurrentSession()
+            if (session) session.blocks = newBlocksOrder
+        },
+
+        // ── Exercices ─────────────────────────────────────────────────────────────
+
+        /**
+         * Ajoute un exercice dans un bloc avec les defaults adaptés au type du bloc
+         * @param {string} blockId
+         * @param {Object} exerciceData - données issues du catalogue (id, name, etc.)
+         */
+        addExerciceToBlock(blockId, exerciceData = {}) {
+            const block = this._findBlock(blockId)
+            if (!block) return
+
+            const defaults = exerciceDefaults[block.type]?.() ?? makeBaseExercice()
+            block.exercices.push({ ...defaults, ...exerciceData })
+        },
+
+        removeExerciceFromBlock(blockId, exerciceId) {
+            const block = this._findBlock(blockId)
+            if (!block) return
+            block.exercices = block.exercices.filter(e => e.id !== exerciceId)
+        },
+
+        updateExercice(blockId, exerciceId, changes) {
+            const block = this._findBlock(blockId)
+            if (!block) return
+            const exo = block.exercices.find(e => e.id === exerciceId)
+            if (exo) Object.assign(exo, changes)
+        },
+
+        replaceExercice(blockId, exerciceId, newExerciceData) {
+            const block = this._findBlock(blockId)
+            if (!block) return
+            const index = block.exercices.findIndex(e => e.id === exerciceId)
+            if (index !== -1) {
+                // On garde les champs de perf (sets, reps...) et on remplace les infos de l'exo
+                const current = block.exercices[index]
+                block.exercices[index] = { ...current, ...newExerciceData }
+            }
+        },
+
+        // ── Helpers privés ────────────────────────────────────────────────────────
+
+        _findSession(sessionId) {
+            return this.workout.sessions.find(s => s.id === sessionId) ?? null
+        },
+
+        _findCurrentSession() {
+            return this._findSession(this.currentSessionId)
+        },
+
+        _findBlock(blockId) {
+            for (const session of this.workout.sessions) {
+                const block = session.blocks.find(b => b.id === blockId)
+                if (block) return block
+            }
+            return null
+        },
     },
 
     getters: {
         workoutName: (state) => state.workout.name,
 
-        activeSession: (state) => state.workout.sessions.find(s => s.id === state.currentSessionId),
+        sessions: (state) => state.workout.sessions,
+
+        activeSession: (state) =>
+            state.workout.sessions.find(s => s.id === state.currentSessionId) ?? null,
 
         activeSessionName() {
-            return this.activeSession?.name || '';
+            return this.activeSession?.name ?? ''
         },
 
-        countSession: (state) => {
-            return state.workout.sessions.length
+        activeSessionBlocks() {
+            return this.activeSession?.blocks ?? []
         },
 
-        getCurrentBlockSessionId() {
-            return this.workout.sessions.flatMap(session =>
-                session.id
-            )
-        },
+        sessionCount: (state) => state.workout.sessions.length,
 
-        // blocks
-        blockExercices() {
+        // Tous les exercices à plat (utile pour stats, résumé, etc.)
+        allExercices: (state) =>
+            state.workout.sessions.flatMap(s =>
+                s.blocks.flatMap(b => b.exercices ?? [])
+            ),
 
-            // const exercices = []
-            //
-            // this.workout.sessions.forEach(session => {
-            //     session.blocks.forEach(block => {
-            //         if (block.exercices) {
-            //             exercices.push(...block.exercices)
-            //         }
-            //     })
-            // })
-            //
-            // return exercices
-
-
-            return this.workout.sessions.flatMap(session =>
-                session.blocks.flatMap(block => block.exercices ?? [])
-            )
-        },
-        getBlockExercicesId() {
-            return this.workout?.sessions?.flatMap(session =>
-                session.blocks.flatMap(block => block.id ?? ''))
-        },
-        hasSupersetBlock: (state) => {
-            return state.workout?.sessions?.some(session =>
-                session.blocks.some(block => block.isSuperset)
-            );
-        }
+        hasBlockOfType: (state) => (type) =>
+            state.workout.sessions.some(s =>
+                s.blocks.some(b => b.type === type)
+            ),
     },
+
     persist: true,
 })

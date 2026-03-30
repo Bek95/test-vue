@@ -13,11 +13,9 @@ const supprimerTache = (id) => {
   emits('supprimerTache', id)
 }
 
-
 const isDone = (id) => {
   emits('isDone', id)
 }
-
 
 </script>
 

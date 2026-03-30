@@ -69,6 +69,7 @@ const heure = computed(() => {
   const minutes = String(now.getMinutes()).padStart(2, '0');
   return `${hours}:${minutes}`;
 })
+
 const count = ref(0)
 const incrementCounter = () => {
   count.value += 1

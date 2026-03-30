@@ -5,17 +5,15 @@ import { ref, watch } from 'vue'
 
 const blockName = ref('Mon block')
 
-// todo insert exercices into one block
-
 let id = 0
 const trainingTypes = ref([
-  // {id: id++, name: "warm-up", borderLeftColor: "warmup-border-left-color"},
-  {id: id++, name: "musculation", borderLeftColor: "classical-border-left-color"},
-  {id: id++, name: "amrap", borderLeftColor: "amrap-border-left-color"},
-  {id: id++, name: "fortime", borderLeftColor: "fortime-border-left-color"},
-  {id: id++, name: "tabata", borderLeftColor: "tabata-border-left-color"},
-  {id: id++, name: "emom", borderLeftColor: "emom-border-left-color"},
-  // {id: id++, name: "cool down", borderLeftColor: "cool-down-border-left-color"},
+  {id: id++, name: "warm-up", borderLeftColor: "warmup-border-left-color", backgroundColor: "warmup-border-color"},
+  {id: id++, name: "musculation", borderLeftColor: "musculation-border-left-color", backgroundColor: "musculation-border-color"},
+  {id: id++, name: "amrap", borderLeftColor: "amrap-border-left-color", backgroundColor: "amrap-border-color"},
+  {id: id++, name: "fortime", borderLeftColor: "fortime-border-left-color", backgroundColor: "fortime-border-color"},
+  {id: id++, name: "tabata", borderLeftColor: "tabata-border-left-color", backgroundColor: "tabata-border-color"},
+  {id: id++, name: "emom", borderLeftColor: "emom-border-left-color", backgroundColor: "emom-border-color"},
+  {id: id++, name: "cool down", borderLeftColor: "cool-down-border-left-color", backgroundColor: "cool-down-border-color"},
 ])
 
 // const blocks =  ref([])
@@ -55,7 +53,7 @@ const trainingTypes = ref([
               :key="training.id"
               class="btn btn-outline-secondary m-2 text-start"
               :class="training.borderLeftColor"
-              :to="{ name: 'add-exercice', query: { type: training.name, block_name: blockName } }"
+              :to="{ name: 'add-exercise', query: { type: training.name, blockName: blockName, backgroundColor: training.backgroundColor } }"
           >
             {{ training.name.toUpperCase() }}
           </router-link>
@@ -75,28 +73,56 @@ const trainingTypes = ref([
   border-left: 8px solid #aebdd1;
 }
 
-.classical-border-left-color {
+.wamup-background-color {
+  background-color: #aebdd1;
+}
+
+.musculation-border-left-color {
   border-left: 8px solid #dba81a;
+}
+
+.musculation-background-color {
+  background-color: #dba81a;
 }
 
 .amrap-border-left-color {
   border-left: 8px solid #ed1123;
 }
 
+.amrap-background-color {
+  background-color: #ed1123;
+}
+
 .fortime-border-left-color {
   border-left: 8px solid #a369c9;
+}
+
+.fortime-background-color {
+  background-color: #a369c9;
 }
 
 .tabata-border-left-color {
   border-left: 8px solid #2c7d09;
 }
 
+.tabata-background-color {
+  background-color: #2c7d09;
+}
+
 .emom-border-left-color {
   border-left: 8px solid #2f3ced;
 }
 
+.emom-background-color {
+  background-color: #2f3ced;
+}
+
 .cool-down-border-left-color {
   border-left: 8px solid #69c9c0;
+}
+
+.cool-down-background-color {
+  background-color: #69c9c0;
 }
 
 </style>

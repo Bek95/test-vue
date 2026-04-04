@@ -113,6 +113,7 @@ export const useWorkoutStore = defineStore('workout', {
             this.addSession(firstSessionName)
         },
 
+
         // ── Sessions ─────────────────────────────────────────────────────────────
 
         addSession(name) {

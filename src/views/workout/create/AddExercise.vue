@@ -25,6 +25,8 @@ const isDisable = ref(false)
 const hasWeight = ref(false)
 const selectedUnit = ref('Kg')
 const hideWeight = ref(false)
+const hasTimer = ref(false)
+const duration = ref(0)
 
 watch(selectedExo, (newValue) => {
   if (newValue) hasWeight.value = newValue.weight
@@ -67,7 +69,7 @@ const exercices = ref([
   { id: id++, name: 'Lunges', category: 'reps', weight: true },
   { id: id++, name: 'Front Rack Walking Lunges', category: 'reps', weight: true },
   { id: id++, name: 'Renegade Row', category: 'reps', weight: true },
-  { id: id++, name: 'Double Under', category: 'reps', weight: false },
+  { id: id++, name: 'Double Under', category: 'duration', weight: false },
   { id: id++, name: 'Press', category: 'reps', weight: true },
   { id: id++, name: 'Bench Press', category: 'reps', weight: true },
   { id: id++, name: 'Deadlift', category: 'reps', weight: true },
@@ -86,13 +88,22 @@ const filteredExercices = computed(() => {
 const isHidden = ref(true)
 const isHiddenDuration = ref(true)
 
-
 const selectExo = (exo) => {
   if (!exo.weight) hideWeight.value = true
   isHidden.value = true
   selectedExo.value = exo
   searchQuery.value = exo.name.toUpperCase()
   showDropdown.value = false
+  if (exo.category === 'duration') hasTimer.value = true
+}
+
+const formatReps = (exo) => {
+  if (exo.reps) {
+    return exo.sets + ' x ' + exo.reps + 'reps'
+  }
+  if (exo.duration) {
+    return exo.sets + ' x ' + exo.duration + 'sec'
+  }
 }
 
 const blockExercices = ref([])
@@ -121,14 +132,16 @@ const addExercice = () => {
     weight: weight.value,
     unit: selectedUnit.value,
     restTime: settings.value.restTime,
+    duration: duration.value,
   })
+
+  console.log(blockExercices.value)
 
   searchQuery.value = ''
   selectedExo.value = null
   isDisable.value = false
   isMax.value = false
   weight.value = 0
-  console.log("block exo : ", blockExercices.value)
 }
 
 const exercicesAffiches = computed({
@@ -329,8 +342,15 @@ const saveBlock = () => {
                 <div class="exo-info">
                   <span class="exo-name">{{ element.name }}</span>
                   <div class="exo-chips">
-                    <span v-if="element.sets" class="chip chip-sets">{{ element.sets }} × {{ element.reps }}</span>
+<!--                    <span v-if="element.sets" class="chip chip-sets">{{ element.sets }} ×-->
+<!--                      <span v-if="element.reps">{{ element.reps }}</span>-->
+<!--                      <span v-else-if="element.duration">{{ element.duration }} sec</span>-->
+<!--                    </span>-->
+                    <span v-if="element.sets" class="chip chip-sets">
+                      {{ formatReps(element) }}
+                    </span>
                     <span v-else-if="element.reps" class="chip chip-reps">{{ element.reps }} reps</span>
+                    <span v-else-if="element.duration" class="chip chip-reps">{{ element.duration }} secondes</span>
                     <span v-if="element.weight" class="chip chip-weight">{{ element.weight }} {{ element.unit }}</span>
                   </div>
                 </div>
@@ -404,11 +424,21 @@ const saveBlock = () => {
                 <input type="number" v-model="sets" class="field-input" />
               </div>
 
-              <div class="field-group field-group--sm">
+              <div v-if="!hasTimer" class="field-group field-group--sm">
                 <label class="field-label">Reps</label>
                 <input
                     type="number"
                     v-model="reps"
+                    class="field-input"
+                    :disabled="isDisable"
+                    :placeholder="isDisable ? 'max' : ''"
+                />
+              </div>
+              <div v-else-if="hasTimer" class="field-group field-group--sm">
+                <label class="field-label">Time (sec)</label>
+                <input
+                    type="number"
+                    v-model="duration"
                     class="field-input"
                     :disabled="isDisable"
                     :placeholder="isDisable ? 'max' : ''"

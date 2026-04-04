@@ -2,6 +2,7 @@
 import { computed } from "vue";
 import draggable from "vuedraggable";
 import { useWorkoutStore } from "@/workoutStore.js";
+import { saveWorkout } from '@/services/workout/workoutService.js'
 import {faTrashCan} from "@fortawesome/free-solid-svg-icons";
 
 const workoutStore = useWorkoutStore()
@@ -36,6 +37,20 @@ function formatRest(seconds) {
 
 const removeBlock = (id) => {
   workoutStore.removeBlock(id)
+}
+
+const removeExercice = (blockId, exerciceId) => {
+  workoutStore.removeExerciceFromBlock(blockId, exerciceId)
+}
+
+// enregistrer le programme
+async function handleSave() {
+  try {
+    await saveWorkout(workoutStore)
+    router.push({ name: 'home' })
+  } catch (err) {
+    console.error(err)
+  }
 }
 
 </script>
@@ -150,6 +165,10 @@ const removeBlock = (id) => {
                       <span class="rest-label">Repos</span>
                       <span class="rest-value">{{ formatRest(exo.restTime) }}</span>
                     </div>
+
+                    <div>
+                      <button class="block-remove" @click="removeExercice(block.id, exo.id)"><span><FontAwesomeIcon :icon="faTrashCan" /></span></button>
+                    </div>
                   </div>
                 </template>
               </draggable>
@@ -176,7 +195,7 @@ const removeBlock = (id) => {
           <span>＋</span> Ajouter des blocs
         </button>
       </router-link>
-      <button class="btn-primary">
+      <button class="btn-primary" @click="handleSave">
         <span>✓</span> Enregistrer
       </button>
     </footer>
